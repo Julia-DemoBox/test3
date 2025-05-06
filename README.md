@@ -1,56 +1,344 @@
-<!-- readme -->
 
-# 🎉 Welcome to the JS AI Build-a-thon!
+
+# 💬 User Journey: I want to add a simple chat interface
 
 > **Note**
 >
 > We recommend opening another browser tab to work through the following activities so you can keep these instructions open for reference.
 
-The goal of this build-a-thon is to help you learn how to build AI applications using JavaScript and TypeScript. This is a hands-on experience where you'll work through a series of user journeys, each designed to guide you through the process of building AI applications step by step.
-
-You'll complete a series of exercises that will:-
-- 🧠 Help you understand the fundamentals of AI and how it can be applied in JavaScript and TypeScript.
-- 💻 Provide you with practical experience in building AI applications, experimenting with different AI techniques.
-- 🛠️ Introduce you to various tools, libraries, and frameworks that are commonly used in AI development.
-- 👥 Foster a community of learners and developers who are passionate about AI and its applications in JavaScript and TypeScript.
-- 📂 Help you build a portfolio of AI projects that showcase your skills and knowledge.
-
-## 🗺️ How it works
-
-The build-a-thon is structured around **user journeys**, each representing a different path you can take based on your current knowledge and goals. Check out the user journeys below to see which one aligns with your interests and experience level, and click on the corresponding badge to get started.
-
-Each user journey has a **specified expected activity**, _(example, pushing code)_ that you need to complete before moving on to the next user journey. Once you complete the activity, **GitHub Actions will automatically trigger the next step in your journey**. This ensures that you progress through the build-a-thon in a structured manner, building on your knowledge and skills as you go.
-
-> **Note**
+> If you'd wish to reset your progress and select a different user journey, you can do so by clicking this button:
 >
-> ⭐ If you are a complete beginner, **we recommend starting from the first user journey and progressing sequentially**. This will help you build a solid foundation in AI concepts and techniques and progress to more advanced topics.
-> 
-> 🔄 If you would like to reset your progress, you can do so by clicking the **Reset** button in the top of each page. This will reset your progress and allow you to start over from the beginning.
+> [![Reset Progess](https://img.shields.io/badge/Reset--Progress-ff3860?logo=mattermost)](/issues/new?title=Reset+Journey&labels=reset-journey&body=🔄+I+want+to+reset+my+AI+learning+journey+and+start+from+the+beginning.%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+Your+progress+will+be+reset,+this+issue+will+automatically+close,+and+you+will+be+taken+back+to+the+Welcome+step+to+select+a+new+user+journey.**)
+
+## 📋 Pre-requisites
+
+1. A GitHub account
+2. [Visual Studio Code](https://code.visualstudio.com/) installed
+3. [Node.js](https://nodejs.org/en) installed
+4. An Azure subscription. Use the [free trial](https://azure.microsoft.com/free/) if you don't have one, or [Azure for Students](https://azure.microsoft.com/free/students/) if you are a student.
+4. [Azure Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd?tabs=winget-windows%2Cbrew-mac%2Cscript-linux&pivots=os-windows) installed
+
+## 📝 Overview
+
+In this step, you will learn how to add a simple chat interface to your AI application using [Vite](https://vitejs.dev/), a modern frontend build tool that provides a fast and efficient development experience. We will also use [lit](https://lit.dev/) to create simple web components for the chat interface.
+
+## Step 1️⃣ : Initialize a new Vite project
+
+### Introduction to Azure Developer CLI (azd)
+
+The Azure Developer CLI (azd) is a command-line tool that simplifies the process of building, deploying, and managing applications on Azure. Instead of writing the code from scratch, you can use the Azure Developer CLI to quickly set up a project with the basic code in place.
+
+It is recommended to install the [Bicep extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-bicep) to get syntax highlighting and IntelliSense for Bicep files.
+
+In your current working directory, _(at the root)_, run the following command to initialize an AI Chat Interface app:
+
+```bash
+azd init -t Azure-Samples/vite-chat-interface
+```
+
+This will initialize a new Vite project and add the necessary files and folders to your project:
+
+```markdown
+├─webapp/
+│ ├─── index.html
+│ ├─── package.json
+│ ├─── src/
+│ │    ├── main.js
+│ │    ├── index.css
+│ │    ├── components/
+│ │    │    ├── chat.js
+│ │    │    └── chat.css
+│ │    └── utils/
+│ │        └── chatStore.js
+│ └─── public/
+│      └── vite.svg
+├─.azure/
+├─infra/
+│ ├─── main.bicep
+│ ├─── main.parameters.json
+│ └─── abbreviations.json
+├─azure.yaml
+├─ .gitignore
+├─ README.md
+```
+
+- `webapp/`: contains the frontend code for the chat interface.
+- `infra/`: contains the infrastructure code (bicep) for deploying the chat interface to Azure.
+- `.azure/`: contains essential configurations for Azure.
+- `azure.yaml`: a configuration file that defines each service in your application and maps them to the corresponding Azure resources defined in `infra`.
+
+To run the application locally, 
+
+```sh
+cd webapp
+npm install
+npm run dev
+```
+
+Navigate to `http://localhost:5173` in your browser to see the chat interface.
+
+![AI Chat Interface](https://github.com/juliamuiruri4/JS-Journey-to-AI-Foundry/blob/assets/js-ai-journey-assets/vite-lit-ai-chat-interface.png?raw=true)
+
+## Step 2️⃣: Add your AI model to the chat interface
+
+First, update your project to include a `webapi`. At the root of your project, create a new folder called `packages` and move the `webapp` folder into it. 
+
+>**Note**
+>
+> If you are prompted to update imports for 'webapp', select `Yes`. 
+
+Inside the `packages` folder, create a new folder called `webapi`. This will be the API for your chat interface.
+
+Your project structure should now look like this:
+
+```markdown
+  .azure/
+  infra/
+  ├─packages/
+  │ ├─── webapp/
+  │ ├─── webapi/
+  .gitignore
+  azure.yaml
+  README.md
+```
+
+### Expose an HTTP endpoint for your AI API
+
+The `ai-foundry.js` file you created in the previous step is a script and cannot be called directly from the browser. To connect the chat interface to the AI model, we need to expose an HTTP endpoint that can be called from the frontend.
+
+To do this, we will set up an Express.js API in the `webapi` folder.
+
+### Initialize a Node.js project
+In the `webapi` folder, run the following command to initialize a new Node.js project:
+
+```bash
+npm init es6 -y
+```
+
+This will create a new `package.json` file in the `webapi` folder.
+
+### Install required dependencies
+Run the following command to install the required dependencies:
+
+```bash
+npm install express cors dotenv @azure-rest/ai-inference @azure/core-auth
+```
+
+Move the `.env` file you created in the previous step into the `webapi` folder.
+
+### Create an Express.js API
+Create a new file called `server.js` in the `webapi` folder and add the following code:
+
+<details> <summary>Click to expand the `server.js` code</summary>
+
+```javascript
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import ModelClient from "@azure-rest/ai-inference";
+import { AzureKeyCredential } from "@azure/core-auth";
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const client = new ModelClient(
+  process.env.AZURE_INFERENCE_SDK_ENDPOINT,
+  new AzureKeyCredential(process.env.AZURE_INFERENCE_SDK_KEY)
+);
+
+app.post("/chat", async (req, res) => {
+  const userMessage = req.body.message;
+  const messages = [
+    { role: "system", content: "You are a helpful assistant" },
+    { role: "user", content: userMessage },
+  ];
+
+  try {
+    const response = await client.path("chat/completions").post({
+      body: {
+        messages,
+        max_tokens: 4096,
+        temperature: 1,
+        top_p: 1,
+        model: "gpt-4o",
+      },
+    });
+    res.json({ reply: response.body.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Model call failed" });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`AI API server running on port ${PORT}`);
+});
+```
+</details>
+
+### Start the server
+In the `webapi/package.json` file, add the following script to start the server:
+
+```json
+"scripts": {
+  "start": "node server.js"
+}
+```
+
+Run the following command to start the server:
+
+```bash
+npm start
+```
+
+Your API server should now be running on `http://localhost:3001`. 
+
+### Update the chat app to call the API
+
+Update the chat UI's API calling function in `webapp/src/components/chat.js` to call the new API endpoint. Replace the existing `_mockApiCall` function with the following code:
+
+```javascript
+async _mockAiCall(message) {
+  const res = await fetch("http://localhost:3001/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  });
+  const data = await res.json();
+  return data.reply;
+}
+```
+
+Rename the `_mockAiCall` function to `_apiCall` and update the `sendMessage` method to call the `_apiCall` function instead of `_mockApiCall`.
+
+## Step 3️⃣: Test the chat app
+
+With the server running, navigate to `http://localhost:5173` in your browser. You should be able to send messages to the AI model and receive responses.
+
+![AI Chat Interface AI Foundry](https://github.com/juliamuiruri4/JS-Journey-to-AI-Foundry/blob/assets/js-ai-journey-assets/ai-chat-interface-ai-foundry.png?raw=true)
+
+## Step 4️⃣: Deploy to Azure
+
+The project is already configured to deploy the webapp (frontend) to Azure Static Web Apps. The `azure.yaml` file contains the configuration for the webapp:
+
+```yaml
+webapp:
+    project: packages/webapp
+    host: staticwebapp
+    language: js
+    dist: dist
+    hooks:
+      predeploy:
+        windows:
+          shell: pwsh
+          run: npm run build
+        posix:
+          shell: sh
+          run: npm run build
+```
+
+and we already have the bicep code to create the service in `infra/main.bicep` 
+
+```bash
+module webapp 'br/public:avm/res/web/static-site:0.7.0' = {
+  name: 'webapp'
+  scope: resourceGroup
+  params: {
+    name: webappName
+    location: webappLocation
+    tags: union(tags, { 'azd-service-name': webappName })
+    sku: 'Standard'
+  }
+}
+```
+The webapi service is not yet configured in the `azure.yaml` file. To add the webapi service, add the following code to the `azure.yaml` file inside the `services` node:
+
+```yaml
+webapi:
+    project: packages/webapp
+    host: appservice
+    language: js
+```
+
+We'll also need to add the bicep code to create the App Service resource in `infra/main.bicep`. Add the following code to the `main.bicep` file to create an App Service and App Service Plan for the webapi service:
+
+```bash
+module serverfarm 'br/public:avm/res/web/serverfarm:0.4.1' = {
+  name: 'appserviceplan'
+  scope: resourceGroup
+  params: {
+    name: appServicePlanName
+    skuName: 'B1'
+  }
+}
+
+module webapi 'br/public:avm/res/web/site:0.15.1' = {
+  name: 'webapi'
+  scope: resourceGroup
+  params: {
+    kind: 'app'
+    name: webapiName
+    serverFarmResourceId: serverfarm.outputs.resourceId
+  }
+}
+```
+
+Declare the following parameters at the top of the `main.bicep` file to pass the names of the webapi and app service plan to the module:
+
+```bash
+param webapiName string = 'webapi'
+param appServicePlanName string = 'appserviceplan'
+```
+
+Update your output section at the end of the `main.bicep` file to include the following outputs:
+
+```bash
+output WEBAPI_URL string = webapi.outputs.defaultHostname
+```
+
+To deploy the application, 
+- Ensure you are logged in with `azd auth login`,
+- Run `azd up` and enter an environment name (e.g., `build-a-thon`),
+- Select your Azure subscription,
+- Select a location for the resources.
+
+  ![azd up](https://github.com/juliamuiruri4/JS-Journey-to-AI-Foundry/blob/assets/js-ai-journey-assets/azd-up.png?raw=true)
 
 
-## ✅ Activity: Select a user journey
+## ✅ Activity: Push deployment infra code to your repository
 
-To start, select a user journey below, then click **Submit new issue** on the page that opens. **Wait about 20 seconds, then refresh your repository page to see your next instructions.**
+>**Note**
+>
+> To complete this user journey and **AUTOMATICALLY UPDATE** your progress, you MUST push your code to the repository as described below.
+>
+> Checklist:
+> - [ ] Have an `azure.yaml` file at the root of your project
+> - [ ] The file MUST include a service being deployed to `staticwebapp`
 
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_to_build_a_local_GenAI_prototype-green)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+to+build+a+local+GenAI+prototype&labels=user-journey&body=🚀+I%27m+ready+to+build+my+first+local+GenAI+prototype%21+Let%27s+get+started+with+AI+in+JavaScript%21%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+This+issue+will+automatically+close+and+the+README+will+update+with+your+next+instructions.**)
+> If you'd wish to jump to another step without completing this user journey, you can do so by hitting this button:
+>
+> [![Skip to another journey](https://img.shields.io/badge/Skip--to--another--journey-ff3860?logo=mattermost)](/issues/new?title=Skip+Journey&labels=reset-journey&body=🔄+I+want+to+reset+my+AI+learning+journey+and+start+from+the+beginning.%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+Your+progress+will+be+reset,+this+issue+will+automatically+close,+and+you+will+be+taken+back+to+the+Welcome+step+to+select+a+new+user+journey.**)
 
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_to_move_my_prototype_to_Azure-orange)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+have+a+prototype.+Let's+move+to+Azure&labels=user-journey&body=☁️+Time+to+take+my+AI+prototype+to+the+cloud%21+Excited+to+deploy+on+Azure+and+scale+up%21%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+This+issue+will+automatically+close+and+the+README+will+update+with+your+next+instructions.**)
+1.  **Push your changes to the repository:** In the terminal, run the following commands to add, commit, and push your changes to the repository:
 
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_to_add_a_simple_chat_interface_to_my_app-blue)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+to+add+a+simple+chat+interface&labels=user-journey&body=%F0%9F%92%AC+Let%27s+add+a+chat+interface+and+make+my+AI+app+interactive%21+Ready+for+some+real-time+conversations%21%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+This+issue+will+automatically+close+and+the+README+will+update+with+your+next+instructions.**)
+    ```bash
+    git add .
+    git commit -m "Added a simple chat interface"
+    git push
+    ```
 
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_to_integrate_external_data_using_RAG-purple)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+to+create+my+first+AI+app+with+RAG&labels=user-journey&body=%F0%9F%93%9A+I%27m+diving+into+RAG+and+building+my+first+retrieval-augmented+AI+app%21+Let%27s+do+this%21%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+This+issue+will+automatically+close+and+the+README+will+update+with+your+next+instructions.**)
+2.  **Refresh the repo page:** After pushing your changes, **wait about 20 seconds then refresh your repository landing page. [GitHub Actions](https://docs.github.com/en/actions) will automatically update to the next step.**
 
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_to_add_conversation_history_to_my_AI_app-gold)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+to+orchestrate+AI+integrations+using+frameworks&labels=user-journey&body=%F0%9F%9B%A0%EF%B8%8F+Ready+to+orchestrate+AI+integrations+with+powerful+frameworks%21+Let%27s+build+something+amazing%21%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+This+issue+will+automatically+close+and+the+README+will+update+with+your+next+instructions.**)
+## 📚 Further Reading
 
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_to_build_an_AI_Agent-violet)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+to+build+an+agent&labels=user-journey&body=%F0%9F%A4%96+Let%27s+build+an+AI+agent+that+can+help+and+interact+with+users%21+Excited+for+this+step%21%0A%0A**Please+click+on+Create+below,+then+wait+about+15+seconds.+This+issue+will+automatically+close+and+the+README+will+update+with+your+next+instructions.**)
+Here are some additional resources to help you learn more about tools used in this step:
 
-
-<!-- [![Static Badge](https://img.shields.io/badge/User_Journey-I_want_to_add_search_to_my_AI_app-pink)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+to+add+search+to+my+AI+app&labels=user-journey&body=🔍+Search+capabilities%2C+here+I+come%21+Excited+to+make+my+AI+app+smarter+with+search%21)
-
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_my_app_to_work_with_structured_data-yellow)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+my+app+to+work+with+structured+data&labels=user-journey&body=📊+Let%27s+connect+my+AI+app+to+structured+data+and+unlock+new+possibilities%21)
-
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_just_want_a_production_ready_template_to_customize-silver)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+just+want+a+production+ready+template+to+customize&labels=user-journey&body=🎨+Give+me+a+production-ready+template+to+customize+and+launch+my+AI+project+fast%21)
-
-[![Static Badge](https://img.shields.io/badge/User_Journey-I_want_my_agent_to_search_the_internet-amber)](https://github.com/Julia-DemoBox/test3/issues/new?title=User+Journey:+I+want+my+agent+to+search+the+internet&labels=user-journey&body=🌐+I%27m+ready+to+give+my+agent+the+power+to+search+the+internet%21+Let%27s+explore+the+web+with+AI%21) -->
+- https://vite.dev/
+- https://lit.dev/
+- [Accelerate your journey to the cloud with azd](https://azure.github.io/awesome-azd/getting-started)
 
 
